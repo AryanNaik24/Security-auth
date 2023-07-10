@@ -5,6 +5,8 @@ const ejs = require("ejs");
 // import mongoose from "mongoose";
 
 const mongoose = require("mongoose");
+const encrypt = require("mongoose-encryption");
+
 
 
 const app = express();
@@ -37,7 +39,7 @@ app.listen(3000, function () {
   console.log(err);
 });
 
-
+//cresting a new schema
 const userSchema= new mongoose.Schema({
     email:{
         type:String,
@@ -46,6 +48,16 @@ const userSchema= new mongoose.Schema({
     password:{type:String,
         required:true}
 });
+
+//encryption secret
+const secret="thisisasecret.";
+
+
+//encryption comes b4 mongoose.model
+
+userSchema.plugin(encrypt,{secret:secret,encryptedFields:['password']});
+
+
 
 const User= mongoose.model("User",userSchema);
 
@@ -62,6 +74,8 @@ app.get("/register",function (req,res) {
     res.render("register");
 });
 
+
+//sending post requests
 app.post("/register",function (req,res){
     const newUser=new User({
         email:req.body.username,
