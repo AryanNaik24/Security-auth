@@ -57,7 +57,8 @@ app.listen(3000, function () {
 const userSchema= new mongoose.Schema({
     email:String,
     password:String,
-    googleId: String
+    googleId: String,
+    secret:String
 });
 
 // {
@@ -130,13 +131,34 @@ app.get("/register",function (req,res) {
     res.render("register");
 });
 app.get("/secrets",function (req,res) {
+    // if(req.isAuthenticated()){
+    //     res.render("secrets");
+    //     // next();
+    // }else{
+    //     res.redirect("/login");
+    // }
+    User.find({"secret":{$ne:null}}).then(function (foundUsers) {
+            if(foundUsers){
+                res.render('secrets',{usersWithSecrets:foundUsers});
+            }
+        
+    }).catch(function (err) {
+        if (err) {
+            console.log(err);
+        }
+    });
+
+
+});
+app.get("/submit",function (req,res) {
     if(req.isAuthenticated()){
-        res.render("secrets");
+        res.render("submit");
         // next();
     }else{
         res.redirect("/login");
     }
-});
+})
+
 app.get("/logout",function (req,res) {
     req.logout(function (err) {
         if(err){console.log(err);}else{
@@ -144,12 +166,33 @@ app.get("/logout",function (req,res) {
         }
     });
    
-})
+});
 
 
 
 
 //sending post requests
+app.post("/submit",function (req,res) {
+    const submittedSecret=req.body.secret;
+    User.findById(req.user.id).then(function (foundUser){
+            if(foundUser){
+                foundUser.secret=submittedSecret;
+                foundUser.save().then(function () {
+                    res.redirect("/secrets");
+                }).catch(function (err) {
+                    if (err) {
+                        console.log(err);
+                    }
+                })
+            }
+        
+    }).catch(function (err) {
+        if (err) {
+            console.log(err);
+        }
+    });
+});
+
 
 app.post("/register",function (req,res){
 
